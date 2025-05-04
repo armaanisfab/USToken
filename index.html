@@ -44,7 +44,7 @@
         <div id="notification" class="hidden"></div>
 
         <section id="participantSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Participant Functions</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Participant Zone</h2>
             <div id="participantContent" class="space-y-6">
                 <div id="joinClub" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
@@ -60,7 +60,7 @@
         </section>
 
         <section id="organizerSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Organizer Functions</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Organizer Zone</h2>
             <div id="organizerContent" class="space-y-6">
                 <div id="createClub">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
@@ -77,7 +77,7 @@
                     </button>
                 </div>
                 <div id="manageClubs" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Manage Your Clubs</h3>
+                    <h3 class="text-base font-medium text-gray-800 mb-2">Manage Your Club</h3>
                     <div id="organizedClubsList" class="space-y-4"></div>
                 </div>
             </div>
@@ -779,17 +779,17 @@
             if (participantClub != 0) {
                 try {
                     const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
-                    const members = leaderboard[0];
+                    const members = leaderboard[0].map(addr => addr.toLowerCase());
                     const totalTokens = leaderboard[1];
-                    const userIndex = members.indexOf(account);
+                    const userIndex = members.indexOf(account.toLowerCase());
                     if (userIndex !== -1) {
                         totalUSTokens = web3.utils.fromWei(totalTokens[userIndex], 'ether');
+                    } else {
+                        console.error("User not found in leaderboard:", account);
                     }
                 } catch (error) {
-                    console.error("Error fetching leaderboard:", error);
+                    console.error("Error fetching leaderboard for totalTokens:", error);
                 }
-            } else {
-                totalUSTokens = '0'; // User not in a club, no tokens received yet
             }
             document.getElementById('totalTokens').innerText = totalUSTokens;
 
