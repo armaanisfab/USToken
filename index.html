@@ -843,7 +843,7 @@
                 <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                 <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                 <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
-                <p class="mt-1 flex space-x-4">
+                <p class="mt-2 flex space-x-4">
                     <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
                         Remaining stake: ${staked} USToken
                     </span>
@@ -883,9 +883,9 @@
                         <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                         <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                     </div>
-                    <div id="attendanceForm-${clubId}" class="space-y-2">
+                    <div id="attendanceForm-${clubId}" class="space-y-4">
                         <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <div id="attendanceList-${clubId}" class="space-y-2"></div>
+                        <div id="attendanceList-${clubId}" class="space-y-4"></div>
                         <button id="submitAttendanceButton" data-club-id="${clubId}" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                             <span class="octicon octicon-check"></span> Submit Attendance
                         </button>
