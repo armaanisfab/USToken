@@ -769,6 +769,19 @@
                 document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
                 document.getElementById('mainContent').classList.remove('hidden');
                 await updateUserInfo();
+
+                window.ethereum.on('accountsChanged', async (newAccounts) => {
+                    if (newAccounts.length > 0) {
+                        account = newAccounts[0];
+                        document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${truncateAddress(account)}`;
+                        await updateUserInfo();
+                    } else {
+                        showNotification('error', 'No account connected. Please reconnect your wallet.');
+                        document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connect Sepolia MetaMask Wallet`;
+                        document.getElementById('connectButton').classList.remove('bg-green-500', 'hover:bg-green-600');
+                        document.getElementById('mainContent').classList.add('hidden');
+                    }
+                });
             } catch (error) {
                 console.error("Wallet connection error:", error);
                 showNotification('error', 'Error connecting wallet: ' + error.message);
