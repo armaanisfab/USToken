@@ -1,48 +1,9 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKUST USToken Club System</title>
+    <title>USToken, by Armaan Dayal</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://primer.style/octicons/octicons.min.css" rel="stylesheet">
@@ -57,24 +18,25 @@
         .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
         .alert-success { background-color: #d4edda; color: #155724; }
         .alert-error { background-color: #f8d7da; color: #721c24; }
+        .input-height { height: 2.5rem; } /* Consistent height for inputs and textareas */
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
     <header class="bg-white border-b border-gray-200 py-4">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">HKUST USToken Club System</h1>
-                <p class="text-sm text-gray-500 mt-1">A blockchain-based platform for club participation</p>
+                <h1 class="text-2xl font-bold text-gray-900">Welcome to USToken!</h1>
+                <p class="text-sm text-gray-500 mt-1">Participate in clubs, earn hall points. It's that easy!</p>
             </div>
             <div>
                 <button id="connectButton" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                     <span class="octicon octicon-plug"></span> Connect Wallet
                 </button>
-                <p class="text-sm text-gray-500 mt-2">Connect your MetaMask wallet to create or join clubs.</p>
+                <p class="text-sm text-gray-500 mt-2">Connect your Sepolia MetaMask wallet to create or join clubs.</p>
             </div>
         </div>
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-            <p class="text-sm text-gray-600">Balance: <span id="balance" class="font-medium">0</span> USToken</p>
+            <p class="text-sm text-gray-600">Your total USTokens: <span id="totalTokens" class="font-medium">0</span></p>
         </div>
     </header>
 
@@ -86,13 +48,12 @@
             <div id="participantContent" class="space-y-6">
                 <div id="joinClub" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">You'll receive 10 USTokens and stake them to join a club. Your wallet balance will show 0, but your stake is visible in the club.</p>
+                    <p class="text-sm text-gray-500 mb-4">Join a club to earn 10 USTokens! They will be automatically staked to the club you've joined.</p>
                     <div id="clubs" class="grid gap-4 sm:grid-cols-2"></div>
                 </div>
                 <div id="yourClub" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Your Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">View your club's details and your staked tokens.</p>
-                    <div id="yourClubDetails"></div>
+                    <div id="yourClubDetails" class="card bg-white p-4"></div>
                     <div id="yourClubLeaderboard" class="mt-4"></div>
                 </div>
             </div>
@@ -103,13 +64,13 @@
             <div id="organizerContent" class="space-y-6">
                 <div id="createClub">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">You'll receive and stake 10 USTokens to start a club.</p>
+                    <p class="text-sm text-gray-500 mb-4">Create a club to earn 10 USTokens! You'll be added as a participant and these points will automatically be staked to the club.</p>
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2">
-                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2">
-                        <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
-                        <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
-                        <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
+                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required></textarea>
+                        <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
+                        <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
                     </div>
                     <button id="createButton" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                         <span class="octicon octicon-plus"></span> Create Club
@@ -117,7 +78,6 @@
                 </div>
                 <div id="manageClubs" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Manage Your Clubs</h3>
-                    <p class="text-sm text-gray-500 mb-4">View and manage your organized clubs.</p>
                     <div id="organizedClubsList" class="space-y-4"></div>
                 </div>
             </div>
@@ -127,7 +87,7 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Submit Attendance</h2>
             <p class="text-sm text-gray-500 mb-4">Mark attendance for club members.</p>
             <input type="hidden" id="clubIdAttendance">
-            <input type="text" id="sessionIdentifier" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4">
+            <input type="text" id="sessionIdentifier" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4" required>
             <div id="attendanceList" class="space-y-4"></div>
             <button id="submitAttendanceButton" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                 <span class="octicon octicon-check"></span> Submit Attendance
@@ -136,652 +96,652 @@
     </main>
 
     <script>
-        const contractAddress = "0x56621e496b6F6C04cAc94DC6b4eb9DBA22ee41B5";
+        const contractAddress = "0xf8e81D47203A594245E36C48e151709F0C19fBe8";
         const contractABI = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "attended",
-				"type": "bool"
-			}
-		],
-		"name": "AttendanceMarked",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "BonusMinted",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "courseCode",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "leader",
-				"type": "address"
-			}
-		],
-		"name": "ClubCreated",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "courseCode",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "schedule",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "requirements",
-				"type": "string"
-			}
-		],
-		"name": "createClub",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "sessionIdentifier",
-				"type": "string"
-			}
-		],
-		"name": "DailyAttendanceSubmitted",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			}
-		],
-		"name": "joinClub",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "stake",
-				"type": "uint256"
-			}
-		],
-		"name": "MemberJoined",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "penalty",
-				"type": "uint256"
-			}
-		],
-		"name": "PenaltyApplied",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "sessionIdentifier",
-				"type": "string"
-			},
-			{
-				"internalType": "address[]",
-				"name": "members",
-				"type": "address[]"
-			},
-			{
-				"internalType": "bool[]",
-				"name": "attended",
-				"type": "bool[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "bonusAmounts",
-				"type": "uint256[]"
-			}
-		],
-		"name": "submitDailyAttendance",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "TokensMinted",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "ATTENDANCE_REWARD",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "balances",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "clubCount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "clubMembership",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "clubs",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "courseCode",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "leader",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "schedule",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "requirements",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "sessionCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			}
-		],
-		"name": "getClubDetails",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "courseCode",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "leader",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "schedule",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "requirements",
-				"type": "string"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			}
-		],
-		"name": "getLeaderboard",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "members",
-				"type": "address[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "totalTokens",
-				"type": "uint256[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			}
-		],
-		"name": "getMemberStats",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "attendanceCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "staked",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "earnedTokens",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "getOrganizerClubs",
-		"outputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "getParticipantClub",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "clubId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "member",
-				"type": "address"
-			}
-		],
-		"name": "getSessionAttendance",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "attended",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "bonusAmount",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "hasReceivedInitialTokens",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "INITIAL_TOKENS",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "organizerClubs",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "PENALTY_PER_MISS",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "sessionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "bool",
+                        "name": "attended",
+                        "type": "bool"
+                    }
+                ],
+                "name": "AttendanceMarked",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "sessionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "BonusMinted",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "courseCode",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "leader",
+                        "type": "address"
+                    }
+                ],
+                "name": "ClubCreated",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "courseCode",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "schedule",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "requirements",
+                        "type": "string"
+                    }
+                ],
+                "name": "createClub",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "sessionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "sessionIdentifier",
+                        "type": "string"
+                    }
+                ],
+                "name": "DailyAttendanceSubmitted",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "joinClub",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "stake",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "MemberJoined",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "sessionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "penalty",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "PenaltyApplied",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sessionIdentifier",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "members",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "bool[]",
+                        "name": "attended",
+                        "type": "bool[]"
+                    },
+                    {
+                        "internalType": "uint256[]",
+                        "name": "bonusAmounts",
+                        "type": "uint256[]"
+                    }
+                ],
+                "name": "submitDailyAttendance",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "TokensMinted",
+                "type": "event"
+            },
+            {
+                "inputs": [],
+                "name": "ATTENDANCE_REWARD",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "balances",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "clubCount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "clubMembership",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "clubs",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "courseCode",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "leader",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "schedule",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "requirements",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "sessionCount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "active",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getClubDetails",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "courseCode",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "leader",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "schedule",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "requirements",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "active",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getLeaderboard",
+                "outputs": [
+                    {
+                        "internalType": "address[]",
+                        "name": "members",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256[]",
+                        "name": "totalTokens",
+                        "type": "uint256[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    }
+                ],
+                "name": "getMemberStats",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "attendanceCount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "staked",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "earnedTokens",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    }
+                ],
+                "name": "getOrganizerClubs",
+                "outputs": [
+                    {
+                        "internalType": "uint256[]",
+                        "name": "",
+                        "type": "uint256[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    }
+                ],
+                "name": "getParticipantClub",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "clubId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "sessionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "member",
+                        "type": "address"
+                    }
+                ],
+                "name": "getSessionAttendance",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "attended",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "bonusAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "hasReceivedInitialTokens",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "INITIAL_TOKENS",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "organizerClubs",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "PENALTY_PER_MISS",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
         let web3, contract, account, participantClub = 0, organizerClubs = [];
 
         async function init() {
@@ -811,10 +771,15 @@
         }
 
         async function updateUserInfo() {
-            const balance = await contract.methods.balances(account).call();
-            document.getElementById('balance').innerText = web3.utils.fromWei(balance, 'ether');
-            participantClub = await contract.methods.getParticipantClub(account).call();
+            const participantClubId = await contract.methods.getParticipantClub(account).call();
+            participantClub = participantClubId;
             organizerClubs = await contract.methods.getOrganizerClubs(account).call();
+            const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
+            const members = leaderboard[0];
+            const totalTokens = leaderboard[1];
+            const userIndex = members.indexOf(account);
+            const totalUSTokens = userIndex !== -1 ? web3.utils.fromWei(totalTokens[userIndex], 'ether') : '0';
+            document.getElementById('totalTokens').innerText = totalUSTokens;
 
             document.getElementById('participantSection').classList.remove('hidden');
             document.getElementById('joinClub').classList.toggle('hidden', participantClub != 0);
@@ -849,10 +814,15 @@
         async function loadYourClub() {
             const details = await contract.methods.getClubDetails(participantClub).call();
             const memberStats = await contract.methods.getMemberStats(participantClub, account).call();
+            const staked = web3.utils.fromWei(memberStats[1], 'ether');
+            const earned = web3.utils.fromWei(memberStats[2], 'ether');
             document.getElementById('yourClubDetails').innerHTML = `
-                <p class="text-sm">${details[0]} (${details[1]}) | Schedule: ${details[3]}</p>
-                <p class="text-sm text-gray-600 mt-1">Your Staked Tokens: ${web3.utils.fromWei(memberStats[1], 'ether')} USToken</p>
+                <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
+                <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                <p class="text-sm text-gray-600 mt-1">Staked USTokens remaining: ${staked} USToken</p>
+                <p class="text-sm text-gray-600">Earned USTokens: ${earned} USToken</p>
             `;
+
             const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
             const members = leaderboard[0];
             const totalTokens = leaderboard[1];
@@ -879,7 +849,7 @@
                 clubDiv.innerHTML = `
                     <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                     <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                    <button onclick="showAttendanceForm(${clubId})" class="btn-primary text-white px-4 py-1 rounded-md text-sm mt-2 flex items-center justify-center">
+                    <button onclick="showAttendanceForm(${clubId})" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm mt-2 flex items-center justify-center">
                         <span class="octicon octicon-checklist"></span> Manage
                     </button>
                 `;
@@ -916,7 +886,7 @@
             }
             try {
                 await contract.methods.createClub(name, courseCode, schedule, description, requirements).send({ from: account });
-                showNotification('success', 'Club created! You received 10 USTokens and staked them. Your wallet balance is now 0, but your stake is in the club.');
+                showNotification('success', 'Club created! You\'ve received 10 USTokens. You have been added as a participant and these points have automatically been staked to the club.');
                 await updateUserInfo();
             } catch (error) {
                 console.error("Create club error:", error);
@@ -927,7 +897,7 @@
         async function joinClub(clubId) {
             try {
                 await contract.methods.joinClub(clubId).send({ from: account });
-                showNotification('success', 'You joined the club! You received 10 USTokens and staked them. Your wallet balance is now 0, but your stake is in the club.');
+                showNotification('success', 'Club joined! You\'ve received 10 USTokens. They have been automatically staked to the club.');
                 await updateUserInfo();
             } catch (error) {
                 console.error("Join club error:", error);
