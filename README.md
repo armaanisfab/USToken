@@ -1,6 +1,6 @@
 # HKUST USToken User Guide
 
-The **HKUST USToken** system is a blockchain-based platform hosted on the **Ethereum Sepolia testnet** turning club participation into hall points at HKUST. Using **USTokens**, it rewards attendance and encourages engagement. As an **organizer**, you create and manage clubs; as a **member**, you join and participate in clubs. 
+The **USToken** system is a blockchain-based platform hosted on the **Ethereum Sepolia testnet** turning club participation into hall points at HKUST. Using **USTokens**, it rewards attendance and encourages engagement. As an organizer, you create and manage clubs; as a member, you join and participate in clubs. 
 
 When you first join or create a club, you receive 10 USTokens, which are automatically staked. You earn or lose points based on your club attendance. At the end of the academic year, SHRLO awards bonus hall points based on the final leaderboard standings.
 
