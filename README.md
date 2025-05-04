@@ -2,13 +2,13 @@
 
 The **HKUST USToken** system is a blockchain-based platform hosted on the **Ethereum Sepolia testnet** turning club participation into hall points at HKUST. Using **USTokens**, it rewards attendance and encourages engagement. As an **organizer**, you create and manage clubs; as a **member**, you join and participate in clubs. When you first join or create a club, you receive **10 USTokens**, which are automatically staked. You earn or lose points based on your club attendance. At the end of the academic year, SHRLO awards bonus hall points based on the final leaderboard standings.
 
-This guide outlines the high-level functions for **organizers** and **members** to help you get started.
+This guide outlines the high-level functions for organizers and members to help you get started.
 
 ---
 
 ## Organizer Functions
 
-As an **organizer**, you lead clubs and manage attendance.
+As an organizer, you lead clubs and manage attendance.
 
 1. **Create a Club**:
    - Fill out a form with the club’s name, course code, schedule, description, and requirements.
@@ -27,7 +27,7 @@ As an **organizer**, you lead clubs and manage attendance.
 
 ## Participant Functions
 
-As a **participant**, you participate in a club and earn tokens.
+As a participant, you participate in a club and earn tokens.
 
 1. **Join a Club**:
    - Browse available clubs and select one to join.
@@ -50,4 +50,4 @@ As a **participant**, you participate in a club and earn tokens.
   - **Join a club** to participate and earn rewards.
 - Monitor your club’s leaderboard and your tokens to stay engaged.
 
-Enjoy being part of the HKUST USToken Club System!
+Have fun!
