@@ -774,11 +774,23 @@
             const participantClubId = await contract.methods.getParticipantClub(account).call();
             participantClub = participantClubId;
             organizerClubs = await contract.methods.getOrganizerClubs(account).call();
-            const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
-            const members = leaderboard[0];
-            const totalTokens = leaderboard[1];
-            const userIndex = members.indexOf(account);
-            const totalUSTokens = userIndex !== -1 ? web3.utils.fromWei(totalTokens[userIndex], 'ether') : '0';
+            
+            let totalUSTokens = '0';
+            if (participantClub != 0) {
+                try {
+                    const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
+                    const members = leaderboard[0];
+                    const totalTokens = leaderboard[1];
+                    const userIndex = members.indexOf(account);
+                    if (userIndex !== -1) {
+                        totalUSTokens = web3.utils.fromWei(totalTokens[userIndex], 'ether');
+                    }
+                } catch (error) {
+                    console.error("Error fetching leaderboard:", error);
+                }
+            } else {
+                totalUSTokens = '0'; // User not in a club, no tokens received yet
+            }
             document.getElementById('totalTokens').innerText = totalUSTokens;
 
             document.getElementById('participantSection').classList.remove('hidden');
@@ -788,6 +800,7 @@
             else await loadClubs();
 
             document.getElementById('organizerSection').classList.remove('hidden');
+            document.getElementById('createClub').classList.toggle('hidden', organizerClubs.length > 0);
             document.getElementById('manageClubs').classList.toggle('hidden', organizerClubs.length == 0);
             if (organizerClubs.length > 0) await loadOrganizedClubs();
         }
@@ -940,5 +953,5 @@
 
         window.onload = init;
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a597afcd5153cf',t:'MTc0NjMzNjQ4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
