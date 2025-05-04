@@ -49,7 +49,7 @@
                 <div id="joinClub" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
                     <p class="text-sm text-gray-500 mb-4">Join a club to earn 10 USTokens! They will be automatically staked to the club you've joined.</p>
-                    <div id="clubList" class="grid gap-4 sm:grid-cols-2"></div>
+                    <div id="clubs" class="grid gap-4 sm:grid-cols-2"></div>
                 </div>
                 <div id="yourClub" class="hidden">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Your Club</h3>
@@ -68,19 +68,27 @@
             <div id="organizerContent" class="space-y-6">
                 <div id="createClub">
                     <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
-                    <p class="text-sm text-gray-500 mb 앱
+                    <p class="text-sm text-gray-500 mb-4">Create a club to earn 10 USTokens! You'll be added as a participant and these points will automatically be staked to the club.</p>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus Nursery
 
-System: It looks like the response was cut off. I'll provide the complete updated `index.html` code with all the requested changes, ensuring the artifact_id matches the original since this is an update. The changes include:
+System: It looks like the response was cut off again. I'll provide the complete updated `index.html` code with the requested changes, ensuring the artifact_id matches the previous version since this is an update. The changes include:
 
-1. Styling "Leaderboard" to match "Your Club" and "Create a Club" (text-base font-medium text-gray-800).
-2. Adding a description below "Leaderboard" with the specified text and bold formatting for "top 10 get 3 bonus hall points".
-3. Coloring the top 10 leaderboard users' addresses green and appending green "+ 3 hall points!" to their token amounts.
-4. Moving the "Submit Attendance" card inside the club card under the "Take Attendance" button (renamed from "Manage").
-5. Hiding the "Organizer Zone" when a user joins a club, mirroring the behavior of hiding "Create a Club" after creation.
+1. **Organizer Zone Visibility**: The Organizer Zone should only be hidden if the user is a participant *and* not an organizer. If the user is an organizer (and thus automatically a participant), the Organizer Zone should remain visible to allow attendance management.
+2. **Leaderboard Bonus Text**:
+   - Top 10: Change "+ 3 hall points!" to "+3 hall points!" (remove space between "+" and "3").
+   - Remaining participants: Add "+1 hall point!" in green to their token amounts.
+3. **Preserving Previous Changes**:
+   - Leaderboard title styled to match "Your Club" and "Create a Club" (text-base font-medium text-gray-800).
+   - Leaderboard description with bold "top 10 get 3 bonus hall points".
+   - Top 10 leaderboard users' addresses in green.
+   - "Submit Attendance" card moved inside the club card under the "Take Attendance" button (renamed from "Manage").
 
 Here is the full updated code:
 
-<xaiArtifact artifact_id="20e23ae8-876a-4847-a21c-3f8e5ec94b71" artifact_version_id="b0eb0b9b-6009-4855-b4ee-7accbb9d95da" title="index.html" contentType="text/html">
+<xaiArtifact artifact_id="cac6f329-586b-447e-8eab-34b41b49d8e8" artifact_version_id="c6a566ef-9880-4b50-911b-fe83a0cf7860" title="index.html" contentType="text/html">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -317,6 +325,7 @@ Here is the full updated code:
                     {
                         "indexed": false,
                         "internalType": "uint256",
+                        "internalType": "uint256",
                         "name": "sessionId",
                         "type": "uint256"
                     },
@@ -546,7 +555,7 @@ Here is the full updated code:
                         "type": "string"
                     },
                     {
-                        "internalType": "string'",
+                        "internalType": "string",
                         "name": "description",
                         "type": "string"
                     },
@@ -884,9 +893,9 @@ Here is the full updated code:
             if (participantClub != 0) await loadYourClub();
             else await loadClubs();
 
-            // Show Organizer Zone only if user hasn't joined a club and hasn't created one
-            document.getElementById('organizerSection').classList.toggle('hidden', participantClub != 0);
-            if (participantClub == 0) {
+            // Show Organizer Zone if user is an organizer or hasn't joined a club
+            document.getElementById('organizerSection').classList.toggle('hidden', participantClub != 0 && organizerClubs.length == 0);
+            if (participantClub == 0 || organizerClubs.length > 0) {
                 document.getElementById('createClub').classList.toggle('hidden', organizerClubs.length > 0);
                 document.getElementById('manageClubs').classList.toggle('hidden', organizerClubs.length == 0);
                 if (organizerClubs.length > 0) await loadOrganizedClubs();
@@ -936,7 +945,7 @@ Here is the full updated code:
                     <span class="${i < 10 ? 'text-green-600' : ''}">${truncateAddress(entry.member)}</span>
                     <span>
                         ${web3.utils.fromWei(entry.total, 'ether')} USToken
-                        ${i < 10 ? '<span class="text-green-600"> + 3 hall points!</span>' : ''}
+                        <span class="text-green-600">${i < 10 ? '+3 hall points!' : '+1 hall point!'}</span>
                     </span>
                 </div>
             `).join('');
