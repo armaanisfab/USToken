@@ -744,7 +744,6 @@
 ];
         let web3, contract, account, participantClub = 0, organizerClubs = [];
 
-        // Helper function to truncate Ethereum addresses
         function truncateAddress(address) {
             if (!address || address.length < 12) return address;
             return `${address.slice(0, 6)}...${address.slice(-6)}`;
@@ -822,7 +821,7 @@
                 clubDiv.innerHTML = `
                     <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                     <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                    <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-1 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
+                    <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-2 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
                         <span class="octicon octicon-person-add"></span> Join
                     </button>
                 `;
