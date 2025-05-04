@@ -36,7 +36,9 @@
             </div>
         </div>
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <p class="text-sm text-gray-600">Your total USToken: <span id="totalTokens" class="font-medium">0</span></p>
+            <span id="totalTokensBadge" class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm hidden">
+                Your total USToken: <span id="totalTokens" class="font-medium">0</span>
+            </span>
         </div>
     </header>
 
@@ -271,7 +273,7 @@
                         "type": "uint256"
                     },
                     {
-                        "indexed": false,
+                        "indexed": "false",
                         "internalType": "address",
                         "name": "member",
                         "type": "address"
@@ -766,6 +768,7 @@
                 document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${truncateAddress(account)}`;
                 document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
                 document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('totalTokensBadge').classList.remove('hidden');
                 await updateUserInfo();
             } catch (error) {
                 console.error("Wallet connection error:", error);
@@ -802,7 +805,6 @@
             if (participantClub != 0) await loadYourClub();
             else await loadClubs();
 
-            // Show Organizer Zone if user is an organizer or hasn't joined a club
             document.getElementById('organizerSection').classList.toggle('hidden', participantClub != 0 && organizerClubs.length == 0);
             if (participantClub == 0 || organizerClubs.length > 0) {
                 document.getElementById('createClub').classList.toggle('hidden', organizerClubs.length > 0);
@@ -874,27 +876,17 @@
                         <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
                         <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                         <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
-                        <button onclick="showAttendanceForm(${clubId}, this)" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm mt-2 flex items-center justify-center">
-                            <span class="octicon octicon-checklist"></span> Take Attendance
-                        </button>
                     </div>
-                    <div id="attendanceForm-${clubId}" class="hidden space-y-4">
-                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4 input-height" required>
-                        <div id="attendanceList-${clubId}" class="space-y-4"></div>
+                    <div id="attendanceForm-${clubId}" class="space-y-2">
+                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <div id="attendanceList-${clubId}" class="space-y-2"></div>
                         <button id="submitAttendanceButton" data-club-id="${clubId}" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                             <span class="octicon octicon-check"></span> Submit Attendance
                         </button>
                     </div>
                 `;
                 organizedClubsList.appendChild(clubDiv);
-            }
-        }
-
-        function showAttendanceForm(clubId, button) {
-            const form = document.getElementById(`attendanceForm-${clubId}`);
-            form.classList.toggle('hidden');
-            if (!form.classList.contains('hidden')) {
-                loadAttendanceList(clubId);
+                await loadAttendanceList(clubId);
             }
         }
 
@@ -956,7 +948,6 @@
                 });
                 await contract.methods.submitDailyAttendance(clubId, sessionIdentifier, members, attended, bonusAmounts).send({ from: account });
                 showNotification('success', 'Attendance submitted!');
-                document.getElementById(`attendanceForm-${clubId}`).classList.add('hidden');
                 await updateUserInfo();
             } catch (error) {
                 console.error("Attendance error:", error);
