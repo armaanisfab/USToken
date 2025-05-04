@@ -72,97 +72,6 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
                         <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus Nursery
-
-System: It looks like the response was cut off again. I'll provide the complete updated `index.html` code with the requested changes, ensuring the artifact_id matches the previous version since this is an update. The changes include:
-
-1. **Organizer Zone Visibility**: The Organizer Zone should only be hidden if the user is a participant *and* not an organizer. If the user is an organizer (and thus automatically a participant), the Organizer Zone should remain visible to allow attendance management.
-2. **Leaderboard Bonus Text**:
-   - Top 10: Change "+ 3 hall points!" to "+3 hall points!" (remove space between "+" and "3").
-   - Remaining participants: Add "+1 hall point!" in green to their token amounts.
-3. **Preserving Previous Changes**:
-   - Leaderboard title styled to match "Your Club" and "Create a Club" (text-base font-medium text-gray-800).
-   - Leaderboard description with bold "top 10 get 3 bonus hall points".
-   - Top 10 leaderboard users' addresses in green.
-   - "Submit Attendance" card moved inside the club card under the "Take Attendance" button (renamed from "Manage").
-
-Here is the full updated code:
-
-<xaiArtifact artifact_id="cac6f329-586b-447e-8eab-34b41b49d8e8" artifact_version_id="c6a566ef-9880-4b50-911b-fe83a0cf7860" title="index.html" contentType="text/html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USToken, by Armaan Dayal</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://primer.style/octicons/octicons.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .octicon { vertical-align: middle; margin-right: 4px; }
-        .btn-primary { background-color: #0969da; }
-        .btn-primary:hover { background-color: #0550ae; }
-        .btn-disabled { background-color: #d0d7de; cursor: not-allowed; }
-        .card { border: 1px solid #d0d7de; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        input:focus, select:focus, textarea:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.3); outline: none; }
-        .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
-        .alert-success { background-color: #d4edda; color: #155724; }
-        .alert-error { background-color: #f8d7da; color: #721c24; }
-        .input-height { height: 2.5rem; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-900">
-    <header class="bg-white border-b border-gray-200 py-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Welcome to USToken!</h1>
-                <p class="text-sm text-gray-500 mt-1">Participate in clubs to earn hall points. It's that easy!</p>
-            </div>
-            <div>
-                <button id="connectButton" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
-                    <span class="octicon octicon-plug"></span> Connect Sepolia MetaMask Wallet
-                </button>
-                <p class="text-sm text-gray-500 mt-2">Only Google Chrome is supported.</p>
-            </div>
-        </div>
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <p class="text-sm text-gray-600">Your total USToken: <span id="totalTokens" class="font-medium">0</span></p>
-        </div>
-    </header>
-
-    <main id="mainContent" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div id="notification" class="hidden"></div>
-
-        <section id="participantSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Participant Zone</h2>
-            <div id="participantContent" class="space-y-6">
-                <div id="joinClub" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">Join a club to earn 10 USTokens! They will be automatically staked to the club you've joined.</p>
-                    <div id="clubs" class="grid gap-4 sm:grid-cols-2"></div>
-                </div>
-                <div id="yourClub" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Your Club</h3>
-                    <div id="yourClubDetails" class="card bg-white p-4"></div>
-                    <div id="yourClubLeaderboard" class="mt-4">
-                        <h3 class="text-base font-medium text-gray-800 mb-2">Leaderboard</h3>
-                        <p class="text-sm text-gray-500 mb-4">All participants who maintain a positive USToken balance receive 1 bonus hall point, and <span class="font-bold">top 10 get 3 bonus hall points!</span></p>
-                        <div id="leaderboardContent"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="organizerSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Organizer Zone</h2>
-            <div id="organizerContent" class="space-y-6">
-                <div id="createClub">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">Create a club to earn 10 USTokens! You'll be added as a participant and these points will automatically be staked to the club.</p>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
                         <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required></textarea>
                         <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
                         <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
@@ -172,7 +81,8 @@ Here is the full updated code:
                     </button>
                 </div>
                 <div id="manageClubs" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Manage Your Club</h3>
+                    <h3 class="text-base font-medium text-gray-800 mb-2">Take Attendance</h3>
+                    <p class="text-sm text-gray-500 mb-4">All present members receive 1 USToken each. Absent members are fined 0.5 USToken, and these penalties are redistributed equally to all present members.</p>
                     <div id="organizedClubsList" class="space-y-4"></div>
                 </div>
             </div>
@@ -324,7 +234,6 @@ Here is the full updated code:
                     },
                     {
                         "indexed": false,
-                        "internalType": "uint256",
                         "internalType": "uint256",
                         "name": "sessionId",
                         "type": "uint256"
@@ -931,6 +840,7 @@ Here is the full updated code:
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
                 <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                 <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
+                <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
                 <p class="text-sm text-gray-600 mt-1">Staked USTokens remaining: ${staked} USToken</p>
                 <p class="text-sm text-gray-600">Earned USTokens: ${earned} USToken</p>
             `;
@@ -957,21 +867,21 @@ Here is the full updated code:
             for (let clubId of organizerClubs) {
                 const details = await contract.methods.getClubDetails(clubId).call();
                 const clubDiv = document.createElement('div');
-                clubDiv.className = 'card bg-white p-4';
+                clubDiv.className = 'space-y-4';
                 clubDiv.innerHTML = `
-                    <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
-                    <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                    <p class="text-xs text-gray-600">Description: ${details[4]}</p>
-                    <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
-                    <button onclick="showAttendanceForm(${clubId}, this)" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm mt-2 flex items-center justify-center">
-                        <span class="octicon octicon-checklist"></span> Take Attendance
-                    </button>
-                    <div id="attendanceForm-${clubId}" class="card bg-white p-6 mt-4 hidden">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Submit Attendance</h2>
-                        <p class="text-sm text-gray-500 mb-4">Mark attendance for club members.</p>
-                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4" required>
+                    <div class="card bg-white p-4">
+                        <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
+                        <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                        <p class="text-xs text-gray-600">Description: ${details[4]}</p>
+                        <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
+                        <button onclick="showAttendanceForm(${clubId}, this)" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm mt-2 flex items-center justify-center">
+                            <span class="octicon octicon-checklist"></span> Take Attendance
+                        </button>
+                    </div>
+                    <div id="attendanceForm-${clubId}" class="hidden space-y-4">
+                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4 input-height" required>
                         <div id="attendanceList-${clubId}" class="space-y-4"></div>
-                        <button id="submitAttendanceButton" data-club-id="${clubId}" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
+                        <button id="submitAttendanceButton" data-club-id="${clubId}" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                             <span class="octicon octicon-check"></span> Submit Attendance
                         </button>
                     </div>
