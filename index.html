@@ -824,6 +824,9 @@
                 clubDiv.innerHTML = `
                     <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                     <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                    <p class="text-xs text-gray-600">Description: ${details[4]}</p>
+                    <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
+                    <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
                     <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-2 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
                         <span class="octicon octicon-person-add"></span> Join
                     </button>
