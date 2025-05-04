@@ -22,25 +22,25 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
-    <header class="bg-white border-b border-gray-200 py-4">
+    <header class="bg-white border-b border-gray-200 py-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Welcome to USToken!</h1>
-                <p class="text-sm text-gray-500 mt-1">Participate in clubs, earn hall points. It's that easy!</p>
+                <p class="text-sm text-gray-500 mt-1">Participate in clubs to earn hall points. It's that easy!</p>
             </div>
             <div>
                 <button id="connectButton" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                     <span class="octicon octicon-plug"></span> Connect Wallet
                 </button>
-                <p class="text-sm text-gray-500 mt-2">Connect your Sepolia MetaMask wallet to create or join clubs.</p>
+                <p class="text-sm text-gray-500 mt-2">Connect your Sepolia MetaMask wallet to get started.</p>
             </div>
         </div>
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-            <p class="text-sm text-gray-600">Your total USTokens: <span id="totalTokens" class="font-medium">0</span></p>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            <p class="text-sm text-gray-600">Your total USToken: <span id="totalTokens" class="font-medium">0</span></p>
         </div>
     </header>
 
-    <main id="mainContent" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <main id="mainContent" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div id="notification" class="hidden"></div>
 
         <section id="participantSection" class="card bg-white p-6 mb-8 hidden">
@@ -744,6 +744,12 @@
 ];
         let web3, contract, account, participantClub = 0, organizerClubs = [];
 
+        // Helper function to truncate Ethereum addresses
+        function truncateAddress(address) {
+            if (!address || address.length < 12) return address;
+            return `${address.slice(0, 6)}...${address.slice(-6)}`;
+        }
+
         async function init() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
@@ -760,7 +766,7 @@
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 account = accounts[0];
-                document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${account.slice(0, 6)}...`;
+                document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${truncateAddress(account)}`;
                 document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
                 document.getElementById('mainContent').classList.remove('hidden');
                 await updateUserInfo();
@@ -832,6 +838,8 @@
             document.getElementById('yourClubDetails').innerHTML = `
                 <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                <p class="text-xs text-gray-600">Description: ${details[4]}</p>
+                <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                 <p class="text-sm text-gray-600 mt-1">Staked USTokens remaining: ${staked} USToken</p>
                 <p class="text-sm text-gray-600">Earned USTokens: ${earned} USToken</p>
             `;
@@ -845,7 +853,7 @@
                 <h4 class="text-sm font-medium mt-2">Leaderboard</h4>
                 ${sorted.map((entry, i) => `
                     <div class="flex justify-between text-xs py-1">
-                        <span>${entry.member.slice(0, 6)}...</span>
+                        <span>${truncateAddress(entry.member)}</span>
                         <span>${web3.utils.fromWei(entry.total, 'ether')} USToken</span>
                     </div>
                 `).join('')}
@@ -862,6 +870,8 @@
                 clubDiv.innerHTML = `
                     <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                     <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                    <p class="text-xs text-gray-600">Description: ${details[4]}</p>
+                    <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                     <button onclick="showAttendanceForm(${clubId})" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm mt-2 flex items-center justify-center">
                         <span class="octicon octicon-checklist"></span> Manage
                     </button>
@@ -882,7 +892,7 @@
             attendanceList.innerHTML = members.map((member, index) => `
                 <div class="flex items-center space-x-2 text-sm">
                     <input type="checkbox" id="member-${index}" data-address="${member}" class="h-4 w-4">
-                    <label for="member-${index}">${member.slice(0, 6)}...</label>
+                    <label for="member-${index}">${truncateAddress(member)}</label>
                 </div>
             `).join('');
         }
@@ -953,5 +963,7 @@
 
         window.onload = init;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a597afcd5153cf',t:'MTc0NjMzNjQ4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a597afcd5153cf',t:'MTc0NjMzNjQ4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a5b4241f42454c',t:'MTc0NjMzNzY0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a5c0836bf8bfe3',t:'MTc0NjMzODE1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
