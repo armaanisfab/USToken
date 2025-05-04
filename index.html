@@ -765,7 +765,7 @@
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 account = accounts[0];
-                document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${ informativeAddress(account)}`;
+                document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${truncateAddress(account)}`;
                 document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
                 document.getElementById('mainContent').classList.remove('hidden');
                 document.getElementById('totalTokensBadge').classList.remove('hidden');
@@ -789,7 +789,7 @@
                     const totalTokens = leaderboard[1];
                     const userIndex = members.indexOf(account.toLowerCase());
                     if (userIndex !== -1) {
-                        totalUSTokens = Number(web3.utils.fromWei(totalTokens[userIndex], 'ether')).toFixed(1);
+                        totalUSTokens = web3.utils.fromWei(totalTokens[userIndex], 'ether');
                     } else {
                         console.error("User not found in leaderboard:", account);
                     }
@@ -838,8 +838,8 @@
         async function loadYourClub() {
             const details = await contract.methods.getClubDetails(participantClub).call();
             const memberStats = await contract.methods.getMemberStats(participantClub, account).call();
-            const staked = Number(web3.utils.fromWei(memberStats[1], 'ether')).toFixed(1);
-            const earned = Number(web3.utils.fromWei(memberStats[2], 'ether')).toFixed(1);
+            const staked = web3.utils.fromWei(memberStats[1], 'ether');
+            const earned = web3.utils.fromWei(memberStats[2], 'ether');
             document.getElementById('yourClubDetails').innerHTML = `
                 <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
@@ -865,7 +865,7 @@
                 <div class="flex justify-between text-xs py-1">
                     <span class="${i < 10 ? 'text-green-600' : ''}">${truncateAddress(entry.member)}</span>
                     <span>
-                        ${Number(web3.utils.fromWei(entry.total, 'ether')).toFixed(1)} USToken
+                        ${web3.utils.fromWei(entry.total, 'ether')} USToken
                         <span class="text-green-600">${i < 10 ? '+3 hall points!' : '+1 hall point!'}</span>
                     </span>
                 </div>
@@ -974,5 +974,5 @@
 
         window.onload = init;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93a6db74a96e7b90',t:'MTc0NjM0OTc0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
