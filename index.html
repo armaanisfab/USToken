@@ -840,6 +840,10 @@
             const memberStats = await contract.methods.getMemberStats(participantClub, account).call();
             const staked = web3.utils.fromWei(memberStats[1], 'ether');
             const earned = web3.utils.fromWei(memberStats[2], 'ether');
+            
+            const stakeValue = parseFloat(staked);
+            const showWarning = stakeValue < 10 && stakeValue > 0;
+            
             document.getElementById('yourClubDetails').innerHTML = `
                 <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
@@ -849,6 +853,7 @@
                 <p class="mt-2 flex space-x-4">
                     <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
                         Remaining stake: ${staked} USToken
+                        ${showWarning ? `<span class="inline-flex items-center ml-2"><span class="octicon octicon-alert text-red-500"></span><span class="text-red-500 ml-1">Stay engaged! The club organizer may expel you if your stake reaches 0!</span></span>` : ''}
                     </span>
                     <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
                         Earned through attendance: ${earned} USToken
