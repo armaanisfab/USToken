@@ -969,7 +969,7 @@
             notification.className = `alert alert-${type}`;
             notification.innerHTML = message;
             notification.classList.remove('hidden');
-            setTimeout(() => notification.classList.add('hidden'), 50000);
+            setTimeout(() => notification.classList.add('hidden'), 10000);
         }
 
         window.onload = init;
