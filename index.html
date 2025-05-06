@@ -851,9 +851,16 @@
                 <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                 <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
                 <p class="mt-2 flex space-x-4">
-                    <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
-                        Remaining stake: ${staked} USToken
-                        ${showWarning ? `<div class="text-red-500">\nStay engaged! The club organizer may expel you if your stake reaches 0!</div>` : ''}
+                    <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm flex items-center space-x-1">
+                        <span>Remaining stake: ${staked} USToken</span>
+                        ${showWarning ? `
+                            <span class="relative group">
+                                <span class="octicon octicon-alert text-red-500"></span>
+                                <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    Stay engaged! The club organizer may expel you if your stake reaches 0!
+                                </span>
+                            </span>
+                        ` : ''}
                     </span>
                     <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
                         Earned through attendance: ${earned} USToken
@@ -979,5 +986,5 @@
 
         window.onload = init;
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b4b52deae1bfcc',t:'MTc0NjQ5NDk3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
