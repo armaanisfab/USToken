@@ -1,98 +1,179 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+    </script><script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+    </script><!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USToken, by Armaan Dayal</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://primer.style/octicons/octicons.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .octicon { vertical-align: middle; margin-right: 4px; }
-        .btn-primary { background-color: #0969da; }
-        .btn-primary:hover { background-color: #0550ae; }
-        .btn-disabled { background-color: #d0d7de; cursor: not-allowed; }
-        .card { border: 1px solid #d0d7de; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        input:focus, select:focus, textarea:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.3); outline: none; }
-        .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
-        .alert-success { background-color: #d4edda; color: #155724; }
-        .alert-error { background-color: #f8d7da; color: #721c24; }
-        .input-height { height: 2.5rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HKUST USToken Club System</title>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://primer.style/octicons/octicons.min.css" rel="stylesheet">
+<style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .octicon { vertical-align: middle; margin-right: 4px; }
+    .btn-primary { background-color: #0969da; }
+    .btn-primary:hover { background-color: #0550ae; }
+    .btn-disabled { background-color: #d0d7de; cursor: not-allowed; }
+    .card { border: 1px solid #d0d7de; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    input:focus, select:focus, textarea:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.3); outline: none; }
+</style>
 </head>
 <body class="bg-gray-50 text-gray-900">
-    <header class="bg-white border-b border-gray-200 py-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Welcome to USToken!</h1>
-                <p class="text-sm text-gray-500 mt-1">Participate in clubs to earn hall points. It's that easy!</p>
+<header class="bg-white border-b border-gray-200 py-4">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">HKUST USToken Club System</h1>
+            <p class="text-sm text-gray-500 mt-1">A blockchain-based platform for club participation</p>
+        </div>
+        <div>
+            <button id="connectButton" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
+                <span class="octicon octicon-plug"></span> Connect Wallet
+            </button>
+            <p class="text-sm text-gray-500 mt-2">Connect your MetaMask wallet to create or join clubs and manage participation.</p>
+        </div>
+    </div>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
+        <p class="text-sm text-gray-600">Balance: <span id="balance" class="font-medium">0</span> USToken</p>
+    </div>
+</header>
+
+<main id="mainContent" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <!-- Participant Section -->
+    <section id="participantSection" class="card bg-white p-6 mb-8 hidden">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Participant Functions</h2>
+        <div id="participantContent" class="space-y-6">
+            <div id="joinClub" class="hidden">
+                <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
+                <p class="text-sm text-gray-500 mb-4">Stake 10 USTokens to join a club. You can only be a member of one club at a time.</p>
+                <div id="clubs" class="grid gap-4 sm:grid-cols-2"></div>
             </div>
-            <div>
-                <button id="connectButton" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
-                    <span class="octicon octicon-plug"></span> Connect Sepolia MetaMask Wallet
+            <div id="yourClub" class="hidden">
+                <h3 class="text-base font-medium text-gray-800 mb-2">Your Club</h3>
+                <p class="text-sm text-gray-500 mb-4">View your club's details and leaderboard. Total tokens include staked and earned amounts.</p>
+                <div id="yourClubDetails"></div>
+                <div id="yourClubLeaderboard" class="mt-4"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Organizer Section -->
+    <section id="organizerSection" class="card bg-white p-6 mb-8 hidden">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Organizer Functions</h2>
+        <div id="organizerContent" class="space-y-6">
+            <div id="createClub">
+                <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
+                <p class="text-sm text-gray-500 mb-4">Create a new club and become its leader and member. You must stake 10 USTokens, which may be penalized 0.5 USTokens per missed session.</p>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2">
+                    <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2">
+                    <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
+                    <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
+                    <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2" rows="2"></textarea>
+                </div>
+                <button id="createButton" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
+                    <span class="octicon octicon-plus"></span> Create Club
                 </button>
-                <p class="text-sm text-gray-500 mt-2">Only Google Chrome is supported.</p>
+            </div>
+            <div id="manageClubs" class="hidden">
+                <h3 class="text-base font-medium text-gray-800 mb-2">Manage Your Clubs</h3>
+                <p class="text-sm text-gray-500 mb-4">View your organized clubs and submit attendance for sessions.</p>
+                <div id="organizedClubsList" class="space-y-4"></div>
             </div>
         </div>
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <span id="totalTokensBadge" class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm hidden">
-                Your total USToken: <span id="totalTokens" class="font-medium">0</span>
-            </span>
-        </div>
-    </header>
+    </section>
 
-    <main id="mainContent" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div id="notification" class="hidden"></div>
+    <!-- Attendance Form -->
+    <section id="attendanceForm" class="card bg-white p-6 mb-8 hidden">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Submit Attendance</h2>
+        <p class="text-sm text-gray-500 mb-4">Mark attendance for club members. Attendees earn 1 USToken; absentees lose 0.5 USTokens from their stake, redistributed to attendees.</p>
+        <input type="hidden" id="clubIdAttendance">
+        <input type="text" id="sessionIdentifier" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 mb-4">
+        <div id="attendanceList" class="space-y-4"></div>
+        <button id="submitAttendanceButton" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
+            <span class="octicon octicon-check"></span> Submit Attendance
+        </button>
+    </section>
+</main>
 
-        <section id="participantSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Participant Zone</h2>
-            <div id="participantContent" class="space-y-6">
-                <div id="joinClub" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Join a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">Join a club to earn 10 USTokens! They will be automatically staked to the club you've joined.</p>
-                    <div id="clubs" class="grid gap-4 sm:grid-cols-2"></div>
-                </div>
-                <div id="yourClub" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Your Club</h3>
-                    <div id="yourClubDetails" class="card bg-white p-4"></div>
-                    <div id="yourClubLeaderboard" class="mt-4">
-                        <h3 class="text-base font-medium text-gray-800 mb-2">Leaderboard</h3>
-                        <p class="text-sm text-gray-500 mb-4">All participants who maintain a positive USToken balance receive 1 bonus hall point, and the top 10 get 3 bonus hall points!</p>
-                        <div id="leaderboardContent"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="organizerSection" class="card bg-white p-6 mb-8 hidden">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Organizer Zone</h2>
-            <div id="organizerContent" class="space-y-6">
-                <div id="createClub">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
-                    <p class="text-sm text-gray-500 mb-4">Create a club to earn 10 USTokens! You'll be added as a participant and these points will automatically be staked to the club.</p>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required></textarea>
-                        <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
-                        <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
-                    </div>
-                    <button id="createButton" class="mt-4 btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
-                        <span class="octicon octicon-plus"></span> Create Club
-                    </button>
-                </div>
-                <div id="manageClubs" class="hidden">
-                    <h3 class="text-base font-medium text-gray-800 mb-2">Take Attendance</h3>
-                    <p class="text-sm text-gray-500 mb-4">All present members receive 1 USToken each. Absent members are fined 0.5 USToken, and these penalties are redistributed equally to all present members.</p>
-                    <div id="organizedClubsList" class="space-y-4"></div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <script>
-        const contractAddress = "0x56621e496b6F6C04cAc94DC6b4eb9DBA22ee41B5";
+<script>
+    const contractAddress = "0x56621e496b6F6C04cAc94DC6b4eb9DBA22ee41B5";
         const contractABI = [
             {
                 "inputs": [],
@@ -738,252 +819,183 @@
                 "type": "function"
             }
         ];
-        let web3, contract, account, participantClub = 0, organizerClubs = [];
+    let web3, contract, account, participantClub = 0, organizerClubs = [];
 
-        function truncateAddress(address) {
-            if (!address || address.length < 12) return address;
-            return `${address.slice(0, 6)}...${address.slice(-6)}`;
+    async function init() {
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+            document.getElementById('connectButton').onclick = connectWallet;
+            document.getElementById('createButton').onclick = createClub;
+            document.getElementById('submitAttendanceButton').onclick = submitAttendance;
+        } else {
+            alert("Please install MetaMask!");
         }
+    }
 
-        async function init() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                contract = new web3.eth.Contract(contractABI, contractAddress);
-                document.getElementById('connectButton').onclick = connectWallet;
-                document.getElementById('createButton').onclick = createClub;
-                window.addEventListener('click', (event) => {
-                    if (event.target.id === 'submitAttendanceButton') {
-                        submitAttendance(event.target.dataset.clubId);
-                    }
-                });
-            } else {
-                showNotification('error', 'Please install MetaMask!');
-            }
+    async function connectWallet() {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            account = accounts[0];
+            document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${account.slice(0, 6)}...`;
+            document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
+            document.getElementById('mainContent').classList.remove('hidden');
+            await updateUserInfo();
+        } catch (error) {
+            console.error("Wallet connection error:", error);
+            alert("Error connecting wallet: " + error.message);
         }
+    }
 
-        async function connectWallet() {
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                account = accounts[0];
-                document.getElementById('connectButton').innerHTML = `<span class="octicon octicon-plug"></span> Connected: ${truncateAddress(account)}`;
-                document.getElementById('connectButton').classList.add('bg-green-500', 'hover:bg-green-600');
-                document.getElementById('mainContent').classList.remove('hidden');
-                document.getElementById('totalTokensBadge').classList.remove('hidden');
-                await updateUserInfo();
-            } catch (error) {
-                console.error("Wallet connection error:", error);
-                showNotification('error', 'Error connecting wallet: ' + error.message);
-            }
-        }
+    async function updateUserInfo() {
+        const balance = await contract.methods.balances(account).call();
+        document.getElementById('balance').innerText = web3.utils.fromWei(balance, 'ether');
+        participantClub = await contract.methods.getParticipantClub(account).call();
+        organizerClubs = await contract.methods.getOrganizerClubs(account).call();
 
-        async function updateUserInfo() {
-            const participantClubId = await contract.methods.getParticipantClub(account).call();
-            participantClub = participantClubId;
-            organizerClubs = await contract.methods.getOrganizerClubs(account).call();
-            
-            let totalUSTokens = '0';
-            if (participantClub != 0) {
-                try {
-                    const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
-                    const members = leaderboard[0].map(addr => addr.toLowerCase());
-                    const totalTokens = leaderboard[1];
-                    const userIndex = members.indexOf(account.toLowerCase());
-                    if (userIndex !== -1) {
-                        totalUSTokens = web3.utils.fromWei(totalTokens[userIndex], 'ether');
-                    } else {
-                        console.error("User not found in leaderboard:", account);
-                    }
-                } catch (error) {
-                    console.error("Error fetching leaderboard for totalTokens:", error);
-                }
-            }
-            document.getElementById('totalTokens').innerText = totalUSTokens;
+        document.getElementById('participantSection').classList.remove('hidden');
+        document.getElementById('joinClub').classList.toggle('hidden', participantClub != 0);
+        document.getElementById('yourClub').classList.toggle('hidden', participantClub == 0);
+        if (participantClub != 0) await loadYourClub();
+        else await loadClubs();
 
-            document.getElementById('participantSection').classList.remove('hidden');
-            document.getElementById('joinClub').classList.toggle('hidden', participantClub != 0);
-            document.getElementById('yourClub').classList.toggle('hidden', participantClub == 0);
-            if (participantClub != 0) await loadYourClub();
-            else await loadClubs();
+        document.getElementById('organizerSection').classList.remove('hidden');
+        document.getElementById('manageClubs').classList.toggle('hidden', organizerClubs.length == 0);
+        if (organizerClubs.length > 0) await loadOrganizedClubs();
+    }
 
-            document.getElementById('organizerSection').classList.toggle('hidden', participantClub != 0 && organizerClubs.length == 0);
-            if (participantClub == 0 || organizerClubs.length > 0) {
-                document.getElementById('createClub').classList.toggle('hidden', organizerClubs.length > 0);
-                document.getElementById('manageClubs').classList.toggle('hidden', organizerClubs.length == 0);
-                if (organizerClubs.length > 0) await loadOrganizedClubs();
-            }
-        }
-
-        async function loadClubs() {
-            const clubCount = await contract.methods.clubCount().call();
-            const clubsDiv = document.getElementById('clubs');
-            clubsDiv.innerHTML = '';
-            for (let i = 1; i <= clubCount; i++) {
-                const details = await contract.methods.getClubDetails(i).call();
-                const clubDiv = document.createElement('div');
-                clubDiv.className = 'card bg-white p-4';
-                clubDiv.innerHTML = `
-                    <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
-                    <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                    <p class="text-xs text-gray-600">Description: ${details[4]}</p>
-                    <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
-                    <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
-                    <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-2 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
-                        <span class="octicon octicon-person-add"></span> Join
-                    </button>
-                `;
-                clubsDiv.appendChild(clubDiv);
-            }
-        }
-
-        async function loadYourClub() {
-            const details = await contract.methods.getClubDetails(participantClub).call();
-            const memberStats = await contract.methods.getMemberStats(participantClub, account).call();
-            const staked = web3.utils.fromWei(memberStats[1], 'ether');
-            const earned = web3.utils.fromWei(memberStats[2], 'ether');
-            
-            const stakeValue = parseFloat(staked);
-            const earnedValue = parseFloat(earned);
-            const showWarning = stakeValue < 10 && stakeValue > 0;
-            const showEarnedBadge = earnedValue > 0;
-            
-            document.getElementById('yourClubDetails').innerHTML = `
+    async function loadClubs() {
+        const clubCount = await contract.methods.clubCount().call();
+        const clubsDiv = document.getElementById('clubs');
+        clubsDiv.innerHTML = '';
+        for (let i = 1; i <= clubCount; i++) {
+            const details = await contract.methods.getClubDetails(i).call();
+            const clubDiv = document.createElement('div');
+            clubDiv.className = 'card bg-white p-4';
+            clubDiv.innerHTML = `
                 <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                <p class="text-xs text-gray-600">Description: ${details[4]}</p>
-                <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
-                <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
-                <p class="mt-2 flex space-x-4">
-                    <span class="bg-${showWarning ? 'red-100' : 'gray-200'} text-gray-800 px-2 py-1 rounded-md text-sm relative group">
-                        Remaining stake: ${staked} USToken
-                        ${showWarning ? `
-                            <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                Stay engaged! The club organizer may expel you if your stake reaches 0!
-                            </span>
-                        ` : ''}
-                    </span>
-                    <span class="bg-${showEarnedBadge ? 'green-100' : 'gray-200'} text-gray-800 px-2 py-1 rounded-md text-sm">
-                        Earned through attendance: ${earned} USToken
-                    </span>
-                </p>
+                <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-1 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
+                    <span class="octicon octicon-person-add"></span> Join
+                </button>
             `;
+            clubsDiv.appendChild(clubDiv);
+        }
+    }
 
-            const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
-            const members = leaderboard[0];
-            const totalTokens = leaderboard[1];
-            const sorted = members.map((m, i) => ({ member: m, total: totalTokens[i] }))
-                .sort((a, b) => b.total - a.total);
-            document.getElementById('leaderboardContent').innerHTML = sorted.map((entry, i) => `
+    async function loadYourClub() {
+        const details = await contract.methods.getClubDetails(participantClub).call();
+        document.getElementById('yourClubDetails').innerHTML = `
+            <p class="text-sm">${details[0]} (${details[1]}) | Schedule: ${details[3]}</p>
+        `;
+        const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
+        const members = leaderboard[0];
+        const totalTokens = leaderboard[1];
+        const sorted = members.map((m, i) => ({ member: m, total: totalTokens[i] }))
+            .sort((a, b) => b.total - a.total);
+        document.getElementById('yourClubLeaderboard').innerHTML = `
+            <h4 class="text-sm font-medium mt-2">Leaderboard</h4>
+            ${sorted.map((entry, i) => `
                 <div class="flex justify-between text-xs py-1">
-                    <span class="${i < 10 ? 'text-green-600' : ''}">${truncateAddress(entry.member)}</span>
-                    <span>
-                        ${web3.utils.fromWei(entry.total, 'ether')} USToken
-                        <span class="text-green-600">${i < 10 ? '+3 hall points!' : '+1 hall point!'}</span>
-                    </span>
+                    <span>${entry.member.slice(0, 6)}...</span>
+                    <span>${web3.utils.fromWei(entry.total, 'ether')} USToken</span>
                 </div>
-            `).join('');
-        }
+            `).join('')}
+        `;
+    }
 
-        async function loadOrganizedClubs() {
-            const organizedClubsList = document.getElementById('organizedClubsList');
-            organizedClubsList.innerHTML = '';
-            for (let clubId of organizerClubs) {
-                const details = await contract.methods.getClubDetails(clubId).call();
-                const clubDiv = document.createElement('div');
-                clubDiv.className = 'space-y-4';
-                clubDiv.innerHTML = `
-                    <div class="card bg-white p-4">
-                        <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
-                        <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
-                        <p class="text-xs text-gray-600">Description: ${details[4]}</p>
-                        <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
-                    </div>
-                    <div id="attendanceForm-${clubId}" class="space-y-4">
-                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <div id="attendanceList-${clubId}" class="space-y-4"></div>
-                        <button id="submitAttendanceButton" data-club-id="${clubId}" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
-                            <span class="octicon octicon-check"></span> Submit Attendance
-                        </button>
-                    </div>
-                `;
-                organizedClubsList.appendChild(clubDiv);
-                await loadAttendanceList(clubId);
-            }
+    async function loadOrganizedClubs() {
+        const organizedClubsList = document.getElementById('organizedClubsList');
+        organizedClubsList.innerHTML = '';
+        for (let clubId of organizerClubs) {
+            const details = await contract.methods.getClubDetails(clubId).call();
+            const clubDiv = document.createElement('div');
+            clubDiv.className = 'card bg-white p-4';
+            clubDiv.innerHTML = `
+                <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
+                <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
+                <button onclick="showAttendanceForm(${clubId})" class="btn-primary text-white px-4 py-1 rounded-md text-sm mt-2 flex items-center justify-center">
+                    <span class="octicon octicon-checklist"></span> Manage
+                </button>
+            `;
+            organizedClubsList.appendChild(clubDiv);
         }
+    }
 
-        async function loadAttendanceList(clubId) {
+    function showAttendanceForm(clubId) {
+        document.getElementById('attendanceForm').classList.remove('hidden');
+        document.getElementById('clubIdAttendance').value = clubId;
+        loadAttendanceList(clubId);
+    }
+
+    async function loadAttendanceList(clubId) {
+        const members = (await contract.methods.getLeaderboard(clubId).call())[0];
+        const attendanceList = document.getElementById('attendanceList');
+        attendanceList.innerHTML = members.map((member, index) => `
+            <div class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="member-${index}" data-address="${member}" class="h-4 w-4">
+                <label for="member-${index}">${member.slice(0, 6)}...</label>
+            </div>
+        `).join('');
+    }
+
+    async function createClub() {
+        const name = document.getElementById('clubName').value;
+        const courseCode = document.getElementById('courseCode').value;
+        const schedule = document.getElementById('schedule').value;
+        const description = document.getElementById('description').value;
+        const requirements = document.getElementById('requirements').value;
+        if (!name || !courseCode || !schedule) {
+            alert("Please fill in all required fields");
+            return;
+        }
+        try {
+            await contract.methods.createClub(name, courseCode, schedule, description, requirements).send({ from: account });
+            alert("Club created!");
+            await updateUserInfo();
+        } catch (error) {
+            console.error("Create club error:", error);
+            alert("Error: " + error.message);
+        }
+    }
+
+    async function joinClub(clubId) {
+        try {
+            await contract.methods.joinClub(clubId).send({ from: account });
+            alert("Joined club!");
+            await updateUserInfo();
+        } catch (error) {
+            console.error("Join club error:", error);
+            alert("Error: " + error.message);
+        }
+    }
+
+    async function submitAttendance() {
+        const clubId = document.getElementById('clubIdAttendance').value;
+        const sessionIdentifier = document.getElementById('sessionIdentifier').value;
+        if (!clubId || !sessionIdentifier) {
+            alert("Please enter a valid club ID and session identifier");
+            return;
+        }
+        try {
             const members = (await contract.methods.getLeaderboard(clubId).call())[0];
-            const attendanceList = document.getElementById(`attendanceList-${clubId}`);
-            attendanceList.innerHTML = members.map((member, index) => `
-                <div class="flex items-center space-x-2 text-sm">
-                    <input type="checkbox" id="member-${clubId}-${index}" data-address="${member}" class="h-4 w-4">
-                    <label for="member-${clubId}-${index}">${truncateAddress(member)}</label>
-                </div>
-            `).join('');
+            const attended = [];
+            const bonusAmounts = members.map(() => 0);
+            members.forEach((_, index) => {
+                const checkbox = document.getElementById(`member-${index}`);
+                attended.push(checkbox.checked);
+            });
+            await contract.methods.submitDailyAttendance(clubId, sessionIdentifier, members, attended, bonusAmounts).send({ from: account });
+            alert("Attendance submitted!");
+            document.getElementById('attendanceForm').classList.add('hidden');
+            await updateUserInfo();
+        } catch (error) {
+            console.error("Attendance error:", error);
+            alert("Error: " + error.message);
         }
+    }
 
-        async function createClub() {
-            const name = document.getElementById('clubName').value.trim();
-            const courseCode = document.getElementById('courseCode').value.trim();
-            const schedule = document.getElementById('schedule').value.trim();
-            const description = document.getElementById('description').value.trim();
-            const requirements = document.getElementById('requirements').value.trim();
-            if (!name || !courseCode || !schedule) {
-                showNotification('error', 'Please fill in all required fields');
-                return;
-            }
-            try {
-                await contract.methods.createClub(name, courseCode, schedule, description, requirements).send({ from: account });
-                showNotification('success', 'Club created! You\'ve received 10 USTokens. You have been added as a participant and these points have automatically been staked to the club.');
-                await updateUserInfo();
-            } catch (error) {
-                console.error("Create club error:", error);
-                showNotification('error', 'Error creating club: ' + error.message);
-            }
-        }
-
-        async function joinClub(clubId) {
-            try {
-                await contract.methods.joinClub(clubId).send({ from: account });
-                showNotification('success', 'Club joined! You\'ve received 10 USTokens. They have been automatically staked to the club.');
-                await updateUserInfo();
-            } catch (error) {
-                console.error("Join club error:", error);
-                showNotification('error', 'Error joining club: ' + error.message);
-            }
-        }
-
-        async function submitAttendance(clubId) {
-            const sessionIdentifier = document.getElementById(`sessionIdentifier-${clubId}`).value.trim();
-            if (!clubId || !sessionIdentifier) {
-                showNotification('error', 'Please enter a valid club ID and session identifier');
-                return;
-            }
-            try {
-                const members = (await contract.methods.getLeaderboard(clubId).call())[0];
-                const attended = [];
-                const bonusAmounts = members.map(() => 0);
-                members.forEach((_, index) => {
-                    const checkbox = document.getElementById(`member-${clubId}-${index}`);
-                    attended.push(checkbox.checked);
-                });
-                await contract.methods.submitDailyAttendance(clubId, sessionIdentifier, members, attended, bonusAmounts).send({ from: account });
-                showNotification('success', 'Attendance submitted!');
-                await updateUserInfo();
-            } catch (error) {
-                console.error("Attendance error:", error);
-                showNotification('error', 'Error submitting attendance: ' + error.message);
-            }
-        }
-
-        function showNotification(type, message) {
-            const notification = document.getElementById('notification');
-            notification.className = `alert alert-${type}`;
-            notification.innerHTML = message;
-            notification.classList.remove('hidden');
-            setTimeout(() => notification.classList.add('hidden'), 10000);
-        }
-
-        window.onload = init;
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b4b52deae1bfcc',t:'MTc0NjQ5NDk3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    window.onload = init;
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93849bcf8bc3be15',t:'MTc0NTk5MDYyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
