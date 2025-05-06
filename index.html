@@ -72,8 +72,8 @@
                     <h3 class="text-base font-medium text-gray-800 mb-2">Create a Club</h3>
                     <p class="text-sm text-gray-500 mb-4">Create a club to earn 10 USTokens! You'll be added as a participant and these points will automatically be staked to the club.</p>
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <input type="text" id="clubName" placeholder="Club Name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
-                        <input type="text" id="courseCode" placeholder="Course Code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <input type="text" id="clubName" placeholder="Club name" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <input type="text" id="courseCode" placeholder="Course code" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
                         <textarea id="schedule" placeholder="Schedule" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required></textarea>
                         <textarea id="description" placeholder="Description" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
                         <textarea id="requirements" placeholder="Requirements" class="sm:col-span-2 w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height"></textarea>
@@ -898,7 +898,7 @@
                         <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                     </div>
                     <div id="attendanceForm-${clubId}" class="space-y-4">
-                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Session Identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
+                        <input type="text" id="sessionIdentifier-${clubId}" placeholder="Unique session identifier (e.g., 2025-04-30). High gas fee means duplicate entry likely." class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
                         <div id="attendanceList-${clubId}" class="space-y-4"></div>
                         <button id="submitAttendanceButton" data-club-id="${clubId}" class="btn-primary text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center">
                             <span class="octicon octicon-check"></span> Submit Attendance
