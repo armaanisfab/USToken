@@ -6,11 +6,12 @@ contract USToken {
     uint256 public constant INITIAL_TOKENS = 10e18; // 10 USTokens in wei
     uint256 public constant ATTENDANCE_REWARD = 1e18; // 1 USToken per session
     uint256 public constant PENALTY_PER_MISS = 0.5e18; // 0.5 USTokens per miss
+    uint256 public constant MAX_PARTICIPANTS = 50; // Maximum participants per club
 
     mapping(address => uint256) public balances;
     mapping(address => uint256) public clubMembership;
     mapping(address => bool) public hasReceivedInitialTokens;
-    mapping(address => uint256[]) public organizerClubs; // Added mapping
+    mapping(address => uint256[]) public organizerClubs;
 
     struct Session {
         string sessionIdentifier;
@@ -84,7 +85,7 @@ contract USToken {
         balances[msg.sender] -= INITIAL_TOKENS;
         clubMembership[msg.sender] = clubCount;
 
-        organizerClubs[msg.sender].push(clubCount); // Add club to organizer's list
+        organizerClubs[msg.sender].push(clubCount);
 
         emit ClubCreated(clubCount, name, courseCode, msg.sender);
         emit MemberJoined(clubCount, msg.sender, INITIAL_TOKENS);
@@ -102,6 +103,7 @@ contract USToken {
         require(!club.members[msg.sender], "Already a member");
         require(clubMembership[msg.sender] == 0, "Already in a club");
         require(balances[msg.sender] >= INITIAL_TOKENS, "Insufficient tokens");
+        require(club.memberList.length < MAX_PARTICIPANTS, "Club has reached the maximum number of participants");
 
         club.members[msg.sender] = true;
         club.memberList.push(msg.sender);
@@ -245,7 +247,7 @@ contract USToken {
     }
 
     function getOrganizerClubs(address user) external view returns (uint256[] memory) {
-        return organizerClubs[user]; // Updated to use mapping
+        return organizerClubs[user];
     }
 
     function getParticipantClub(address user) external view returns (uint256) {

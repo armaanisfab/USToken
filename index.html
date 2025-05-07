@@ -736,6 +736,19 @@
                 ],
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "MAX_PARTICIPANTS",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
             }
         ];
         let web3, contract, account, participantClub = 0, organizerClubs = [];
@@ -819,6 +832,9 @@
             clubsDiv.innerHTML = '';
             for (let i = 1; i <= clubCount; i++) {
                 const details = await contract.methods.getClubDetails(i).call();
+                const leaderboard = await contract.methods.getLeaderboard(i).call();
+                const memberCount = leaderboard[0].length;
+                const isFull = memberCount >= 50;
                 const clubDiv = document.createElement('div');
                 clubDiv.className = 'card bg-white p-4';
                 clubDiv.innerHTML = `
@@ -827,7 +843,9 @@
                     <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                     <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                     <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
-                    <button onclick="joinClub(${i})" class="${!details[6] ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-2 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] ? 'disabled' : ''}>
+                    <p class="text-xs text-gray-600">Number of current participants: ${memberCount}/50</p>
+                    ${isFull ? '<p class="text-xs text-red-600">Club is full</p>' : ''}
+                    <button onclick="joinClub(${i})" class="${!details[6] || isFull ? 'btn-disabled' : 'btn-primary'} text-white px-4 py-2 rounded-md text-sm mt-2 flex items-center justify-center" ${!details[6] || isFull ? 'disabled' : ''}>
                         <span class="octicon octicon-person-add"></span> Join
                     </button>
                 `;
@@ -846,12 +864,16 @@
             const showWarning = stakeValue < 10 && stakeValue > 0;
             const showEarnedBadge = earnedValue > 0;
             
+            const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
+            const memberCount = leaderboard[0].length;
+            
             document.getElementById('yourClubDetails').innerHTML = `
                 <h4 class="text-sm font-semibold">${details[0]} (${details[1]})</h4>
                 <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
                 <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                 <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
                 <p class="text-xs text-gray-600">Club Organizer: ${details[2]}</p>
+                <p class="text-xs text-gray-600">Number of current participants: ${memberCount}/50</p>
                 <p class="mt-2 flex space-x-4">
                     <span class="bg-${showWarning ? 'red-100' : 'gray-200'} text-gray-800 px-2 py-1 rounded-md text-sm relative group">
                         Remaining stake: ${staked} USToken
@@ -867,7 +889,6 @@
                 </p>
             `;
 
-            const leaderboard = await contract.methods.getLeaderboard(participantClub).call();
             const members = leaderboard[0];
             const totalTokens = leaderboard[1];
             const sorted = members.map((m, i) => ({ member: m, total: totalTokens[i] }))
@@ -888,6 +909,8 @@
             organizedClubsList.innerHTML = '';
             for (let clubId of organizerClubs) {
                 const details = await contract.methods.getClubDetails(clubId).call();
+                const leaderboard = await contract.methods.getLeaderboard(clubId).call();
+                const memberCount = leaderboard[0].length;
                 const clubDiv = document.createElement('div');
                 clubDiv.className = 'space-y-4';
                 clubDiv.innerHTML = `
@@ -896,6 +919,7 @@
                         <p class="text-xs text-gray-600">Schedule: ${details[3]}</p>
                         <p class="text-xs text-gray-600">Description: ${details[4]}</p>
                         <p class="text-xs text-gray-600">Requirements: ${details[5]}</p>
+                        <p class="text-xs text-gray-600">Number of current participants: ${memberCount}/50</p>
                     </div>
                     <div id="attendanceForm-${clubId}" class="space-y-4">
                         <input type="text" id="sessionIdentifier-${clubId}" placeholder="Unique session identifier (e.g., 2025-04-30)" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 input-height" required>
@@ -986,5 +1010,5 @@
 
         window.onload = init;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b4b52deae1bfcc',t:'MTc0NjQ5NDk3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
