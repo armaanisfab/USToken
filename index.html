@@ -758,6 +758,11 @@
             return `${address.slice(0, 6)}...${address.slice(-6)}`;
         }
 
+        function formatUSToken(amountStr) {
+            const rounded = parseFloat(amountStr).toFixed(1);
+            return rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded;
+        }
+
         async function init() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
@@ -802,7 +807,7 @@
                     const totalTokens = leaderboard[1];
                     const userIndex = members.indexOf(account.toLowerCase());
                     if (userIndex !== -1) {
-                        totalUSTokens = web3.utils.fromWei(totalTokens[userIndex], 'ether');
+                        totalUSTokens = formatUSToken(web3.utils.fromWei(totalTokens[userIndex], 'ether'));
                     } else {
                         console.error("User not found in leaderboard:", account);
                     }
@@ -856,8 +861,8 @@
         async function loadYourClub() {
             const details = await contract.methods.getClubDetails(participantClub).call();
             const memberStats = await contract.methods.getMemberStats(participantClub, account).call();
-            const staked = web3.utils.fromWei(memberStats[1], 'ether');
-            const earned = web3.utils.fromWei(memberStats[2], 'ether');
+            const staked = formatUSToken(web3.utils.fromWei(memberStats[1], 'ether'));
+            const earned = formatUSToken(web3.utils.fromWei(memberStats[2], 'ether'));
             
             const stakeValue = parseFloat(staked);
             const earnedValue = parseFloat(earned);
@@ -897,7 +902,7 @@
                 <div class="flex justify-between text-xs py-1">
                     <span class="${i < 10 ? 'text-green-600' : ''}">${truncateAddress(entry.member)}</span>
                     <span>
-                        ${web3.utils.fromWei(entry.total, 'ether')} USToken
+                        ${formatUSToken(web3.utils.fromWei(entry.total, 'ether'))} USToken
                         <span class="text-green-600">${i < 10 ? '+3 hall points!' : '+1 hall point!'}</span>
                     </span>
                 </div>
@@ -1010,5 +1015,5 @@
 
         window.onload = init;
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93be6a7c4d02b045',t:'MTc0NjU5Njc3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
